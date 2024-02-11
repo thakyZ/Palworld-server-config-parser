@@ -203,6 +203,7 @@ func main() {
 	case "windows":
 		osFolder = "WindowsServer"
 	case "linux":
+		// Allow for wine.
 		if os.Getenv("WINEPREFIX") == "" {
 		  osFolder = "LinuxServer"
 	        } else {
