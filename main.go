@@ -203,7 +203,11 @@ func main() {
 	case "windows":
 		osFolder = "WindowsServer"
 	case "linux":
-		osFolder = "LinuxServer"
+		if os.Getenv("WINEPREFIX") == "" {
+		  osFolder = "LinuxServer"
+	        } else {
+		  osFolder = "WindowsServer"
+	        }
 	default:
 		fmt.Println("Unsupported operating system")
 		return
