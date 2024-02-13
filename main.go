@@ -7,184 +7,73 @@ import (
 	"path/filepath"
 	"strings"
 	"runtime"
-	"strconv"
-	"regexp"
 )
 
-// Version of the program
-const Version = "v1.0.9"
-
 func main() {
-	fmt.Println("Program Version:", Version)
-// ValidationRules holds validation rules for environment variables
-	var ValidationRules = map[string]func(string) bool{
-		"Numeric": func(val string) bool {
-			// Numeric: Allows only positive numeric values (e.g., "123", "456")
-			num, err := strconv.Atoi(val)
-			return err == nil && num >= 0
-		},
-		"Floating": func(val string) bool {
-			// Floating: Allows only positive floating-point values (e.g., "3.14", "0.005")
-			_, err := strconv.ParseFloat(val, 64)
-			if err != nil {
-				return false
-			}
-			// Check if the value contains a decimal point
-			decimalPointIndex := strings.Index(val, ".")
-			if decimalPointIndex == -1 {
-				return false // No decimal point found
-			}
-			// Check if there are digits after the decimal point
-			return decimalPointIndex < len(val)-1
-		},
-		"TrueFalse": func(val string) bool {
-			// TrueFalse: Allows values "True" or "False"
-			return val == "True" || val == "False"
-		},
-		"String": func(val string) bool {
-			// String: Allows string values with spaces (e.g., "Hello World", "This is a string")
-			return true // No validation needed for string with spaces
-		},
-		"AlphaDash": func(val string) bool {
-			// AlphaDash: Allows only alphanumeric characters and dashes (e.g., "abc123", "test-123")
-			return regexp.MustCompile(`^[a-zA-Z0-9_-]+$`).MatchString(val)
-		},
-		// Add more validation rules as needed
-	}
-
-
 	// Read environment variables
 	envVars := map[string]string{
-		"Difficulty":                         "DIFFICULTY",
-		"DayTimeSpeedRate":                   "DAY_TIME_SPEED_RATE",
-		"NightTimeSpeedRate":                 "NIGHT_TIME_SPEED_RATE",
-		"ExpRate":                            "EXP_RATE",
-		"PalCaptureRate":                     "PAL_CAPTURE_RATE",
-		"PalSpawnNumRate":                    "PAL_SPAWN_NUM_RATE",
-		"PalDamageRateAttack":                "PAL_DAMAGE_RATE_ATTACK",
-		"PalDamageRateDefense":               "PAL_DAMAGE_RATE_DEFENSE",
-		"PlayerDamageRateAttack":             "PLAYER_DAMAGE_RATE_ATTACK",
-		"PlayerDamageRateDefense":            "PLAYER_DAMAGE_RATE_DEFENSE",
-		"PlayerStomachDecreaceRate":          "PLAYER_STOMACH_DECREACE_RATE",
-		"PlayerStaminaDecreaceRate":          "PLAYER_STAMINA_DECREACE_RATE",
-		"PlayerAutoHPRegeneRate":             "PLAYER_AUTO_HP_REGENE_RATE",
-		"PlayerAutoHpRegeneRateInSleep":      "PLAYER_AUTO_HP_REGENE_RATE_IN_SLEEP",
-		"PalStomachDecreaceRate":             "PAL_STOMACH_DECREACE_RATE",
-		"PalStaminaDecreaceRate":             "PAL_STAMINA_DECREACE_RATE",
-		"PalAutoHPRegeneRate":                "PAL_AUTO_HP_REGENE_RATE",
-		"PalAutoHpRegeneRateInSleep":         "PAL_AUTO_HP_REGENE_RATE_IN_SLEEP",
-		"BuildObjectDamageRate":              "BUILD_OBJECT_DAMAGE_RATE",
-		"BuildObjectDeteriorationDamageRate": "BUILD_OBJECT_DETERIORATION_DAMAGE_RATE",
-		"CollectionDropRate":                 "COLLECTION_DROP_RATE",
-		"CollectionObjectHpRate":             "COLLECTION_OBJECT_HP_RATE",
-		"CollectionObjectRespawnSpeedRate":   "COLLECTION_OBJECT_RESPAWN_SPEED_RATE",
-		"EnemyDropItemRate":                  "ENEMY_DROP_ITEM_RATE",
-		"DeathPenalty":                       "DEATH_PENALTY",
-		"bEnablePlayerToPlayerDamage":        "ENABLE_PLAYER_TO_PLAYER_DAMAGE",
-		"bEnableFriendlyFire":                "ENABLE_FRIENDLY_FIRE",
-		"bEnableInvaderEnemy":                "ENABLE_ENEMY",
-		"bActiveUNKO":                        "ACTIVE_UNKO",
-		"bEnableAimAssistPad":                "ENABLE_AIM_ASSIST_PAD",
-		"bEnableAimAssistKeyboard":           "ENABLE_AIM_ASSIST_KEYBOARD",
-		"DropItemMaxNum":                     "DROP_ITEM_MAX_NUM",
-		"DropItemMaxNum_UNKO":                "DROP_ITEM_MAX_NUM_UNKO",
-		"BaseCampMaxNum":                     "BASE_CAMP_MAX_NUM",
-		"BaseCampWorkerMaxNum":               "BASE_CAMP_WORKER_MAX_NUM",
-		"DropItemAliveMaxHours":              "DROP_ITEM_ALIVE_MAX_HOURS",
-		"bAutoResetGuildNoOnlinePlayers":     "AUTO_RESET_GUILD_NO_ONLINE_PLAYERS",
-		"AutoResetGuildTimeNoOnlinePlayers":  "AUTO_RESET_GUILD_TIME_NO_ONLINE_PLAYERS",
-		"GuildPlayerMaxNum":                  "GUILD_PLAYER_MAX_NUM",
-		"PalEggDefaultHatchingTime":          "PAL_EGG_DEFAULT_HATCHING_TIME",
-		"WorkSpeedRate":                      "WORK_SPEED_RATE",
-		"bIsMultiplay":                       "IS_MULTIPLAY",
-		"bIsPvP":                             "IS_PVP",
-		"bCanPickupOtherGuildDeathPenaltyDrop": "CAN_PICKUP_OTHER_GUILD_DEATH_PENALTY_DROP",
-		"bEnableNonLoginPenalty":             "ENABLE_NON_LOGIN_PENALTY",
-		"bEnableFastTravel":                  "ENABLE_FAST_TRAVEL",
-		"bIsStartLocationSelectByMap":        "IS_START_LOCATION_SELECT_BY_MAP",
-		"bExistPlayerAfterLogout":            "EXIST_PLAYER_AFTER_LOGOUT",
-		"bEnableDefenseOtherGuildPlayer":     "ENABLE_DEFENSE_OTHER_GUILD_PLAYER",
-		"CoopPlayerMaxNum":                   "COOP_PLAYER_MAX_NUM",
-		"ServerPlayerMaxNum":                 "MAX_PLAYERS",
-		"ServerName":                         "SERVER_NAME",
-		"ServerDescription":                  "SERVER_DESCRIPTION",
-		"ServerPassword":                     "SERVER_PASSWORD",
-		"AdminPassword":                      "ADMIN_PASSWORD",
-		"PublicIP":                           "PUBLIC_IP",
-		"PublicPort":                         "SERVER_PORT",
-		"RCONPort":                           "RCON_PORT",
-		"RCONEnabled":                        "RCON_ENABLE",
-		"bUseAuth":                           "USE_AUTH",
-		"BanListURL":                         "BAN_LIST_URL",
-		"Region":			      "SERVER_REGION",
+		"Difficulty":                          os.Getenv("DIFFICULTY"),
+		"DayTimeSpeedRate":                    os.Getenv("DAY_TIME_SPEED_RATE"),
+		"NightTimeSpeedRate":                  os.Getenv("NIGHT_TIME_SPEED_RATE"),
+		"ExpRate":                             os.Getenv("EXP_RATE"),
+		"PalCaptureRate":                      os.Getenv("PAL_CAPTURE_RATE"),
+		"PalSpawnNumRate":                     os.Getenv("PAL_SPAWN_NUM_RATE"),
+		"PalDamageRateAttack":                 os.Getenv("PAL_DAMAGE_RATE_ATTACK"),
+		"PalDamageRateDefense":                os.Getenv("PAL_DAMAGE_RATE_DEFENSE"),
+		"PlayerDamageRateAttack":              os.Getenv("PLAYER_DAMAGE_RATE_ATTACK"),
+		"PlayerDamageRateDefense":             os.Getenv("PLAYER_DAMAGE_RATE_DEFENSE"),
+		"PlayerStomachDecreaceRate":           os.Getenv("PLAYER_STOMACH_DECREACE_RATE"),
+		"PlayerStaminaDecreaceRate":           os.Getenv("PLAYER_STAMINA_DECREACE_RATE"),
+		"PlayerAutoHPRegeneRate":              os.Getenv("PLAYER_AUTO_HP_REGENE_RATE"),
+		"PlayerAutoHpRegeneRateInSleep":       os.Getenv("PLAYER_AUTO_HP_REGENE_RATE_IN_SLEEP"),
+		"PalStomachDecreaceRate":              os.Getenv("PAL_STOMACH_DECREACE_RATE"),
+		"PalStaminaDecreaceRate":              os.Getenv("PAL_STAMINA_DECREACE_RATE"),
+		"PalAutoHPRegeneRate":                 os.Getenv("PAL_AUTO_HP_REGENE_RATE"),
+		"PalAutoHpRegeneRateInSleep":          os.Getenv("PAL_AUTO_HP_REGENE_RATE_IN_SLEEP"),
+		"BuildObjectDamageRate":               os.Getenv("BUILD_OBJECT_DAMAGE_RATE"),
+		"BuildObjectDeteriorationDamageRate":  os.Getenv("BUILD_OBJECT_DETERIORATION_DAMAGE_RATE"),
+		"CollectionDropRate":                  os.Getenv("COLLECTION_DROP_RATE"),
+		"CollectionObjectHpRate":              os.Getenv("COLLECTION_OBJECT_HP_RATE"),
+		"CollectionObjectRespawnSpeedRate":    os.Getenv("COLLECTION_OBJECT_RESPAWN_SPEED_RATE"),
+		"EnemyDropItemRate":                   os.Getenv("ENEMY_DROP_ITEM_RATE"),
+		"DeathPenalty":                        os.Getenv("DEATH_PENALTY"),
+		"bEnablePlayerToPlayerDamage":         os.Getenv("ENABLE_PLAYER_TO_PLAYER_DAMAGE"),
+		"bEnableFriendlyFire":                 os.Getenv("ENABLE_FRIENDLY_FIRE"),
+		"bEnableInvaderEnemy":                 os.Getenv("ENABLE_ENEMY"),
+		"bActiveUNKO":                         os.Getenv("ACTIVE_UNKO"),
+		"bEnableAimAssistPad":                 os.Getenv("ENABLE_AIM_ASSIST_PAD"),
+		"bEnableAimAssistKeyboard":            os.Getenv("ENABLE_AIM_ASSIST_KEYBOARD"),
+		"DropItemMaxNum":                      os.Getenv("DROP_ITEM_MAX_NUM"),
+		"DropItemMaxNum_UNKO":                 os.Getenv("DROP_ITEM_MAX_NUM_UNKO"),
+		"BaseCampMaxNum":                      os.Getenv("BASE_CAMP_MAX_NUM"),
+		"BaseCampWorkerMaxNum":                os.Getenv("BASE_CAMP_WORKER_MAX_NUM"),
+		"DropItemAliveMaxHours":               os.Getenv("DROP_ITEM_ALIVE_MAX_HOURS"),
+		"bAutoResetGuildNoOnlinePlayers":      os.Getenv("AUTO_RESET_GUILD_NO_ONLINE_PLAYERS"),
+		"AutoResetGuildTimeNoOnlinePlayers":   os.Getenv("AUTO_RESET_GUILD_TIME_NO_ONLINE_PLAYERS"),
+		"GuildPlayerMaxNum":                   os.Getenv("GUILD_PLAYER_MAX_NUM"),
+		"PalEggDefaultHatchingTime":           os.Getenv("PAL_EGG_DEFAULT_HATCHING_TIME"),
+		"WorkSpeedRate":                       os.Getenv("WORK_SPEED_RATE"),
+		"bIsMultiplay":                        os.Getenv("IS_MULTIPLAY"),
+		"bIsPvP":                              os.Getenv("IS_PVP"),
+		"bCanPickupOtherGuildDeathPenaltyDrop":os.Getenv("CAN_PICKUP_OTHER_GUILD_DEATH_PENALTY_DROP"),
+		"bEnableNonLoginPenalty":              os.Getenv("ENABLE_NON_LOGIN_PENALTY"),
+		"bEnableFastTravel":                   os.Getenv("ENABLE_FAST_TRAVEL"),
+		"bIsStartLocationSelectByMap":         os.Getenv("IS_START_LOCATION_SELECT_BY_MAP"),
+		"bExistPlayerAfterLogout":             os.Getenv("EXIST_PLAYER_AFTER_LOGOUT"),
+		"bEnableDefenseOtherGuildPlayer":      os.Getenv("ENABLE_DEFENSE_OTHER_GUILD_PLAYER"),
+		"CoopPlayerMaxNum":                    os.Getenv("COOP_PLAYER_MAX_NUM"),
+		"ServerPlayerMaxNum":                  os.Getenv("MAX_PLAYERS"),
+		"ServerName":                          os.Getenv("SERVER_NAME"),
+		"ServerDescription":                   os.Getenv("SERVER_DESCRIPTION"),
+		"ServerPassword":                      os.Getenv("SERVER_PASSWORD"),
+		"AdminPassword":                       os.Getenv("ADMIN_PASSWORD"),
+		"PublicIP":                            os.Getenv("PUBLIC_IP"),
+		"PublicPort":                          os.Getenv("SERVER_PORT"),
+		"RCONPort":                            os.Getenv("RCON_PORT"),
+		"RCONEnabled":                         os.Getenv("RCON_ENABLE"),
+		"bUseAuth":                            os.Getenv("USE_AUTH"),
+		"BanListURL":                          os.Getenv("BAN_LIST_URL"),
 		// Add other environment variables and corresponding INI keys here
-	}
-
-	// Specify validation rules for each key
-	envVarsValidationRules := map[string]string{
-		"Difficulty":                     "String", //Difficulty=None,
-		"DayTimeSpeedRate":               "Floating", //DayTimeSpeedRate=1.000000,
-		"NightTimeSpeedRate":             "Floating", //NightTimeSpeedRate=1.000000,
-		"ExpRate":                        "Floating",//ExpRate=1.000000,
-		"PalCaptureRate":                 "Floating", //PalCaptureRate=1.000000,
-		"PalSpawnNumRate":                "Floating",//PalSpawnNumRate=1.000000,
-		"PalDamageRateAttack":            "Floating",//PalDamageRateAttack=1.000000,
-		"PalDamageRateDefense":           "Floating",//PalDamageRateDefense=1.000000,
-		"PlayerDamageRateAttack":         "Floating",//PlayerDamageRateAttack=1.000000,
-		"PlayerDamageRateDefense":        "Floating",//PlayerDamageRateDefense=1.000000,
-		"PlayerStomachDecreaceRate":      "Floating",//PlayerStomachDecreaceRate=1.000000,
-		"PlayerStaminaDecreaceRate":      "Floating",//PlayerStaminaDecreaceRate=1.000000,
-		"PlayerAutoHPRegeneRate":          "Floating",//PlayerAutoHPRegeneRate=1.000000,
-		"PlayerAutoHpRegeneRateInSleep":   "Floating",//PlayerAutoHpRegeneRateInSleep=1.000000,
-		"PalStaminaDecreaceRate":         "Floating",//PalStaminaDecreaceRate=1.000000,
-		"PalStomachDecreaceRate":         "Floating",//PalStomachDecreaceRate=1.000000,
-		"PalAutoHPRegeneRate":             "Floating",//PalAutoHPRegeneRate=1.000000,
-		"PalAutoHpRegeneRateInSleep":      "Floating",//PalAutoHpRegeneRateInSleep=1.000000,
-		"BuildObjectDamageRate":          "Floating",//BuildObjectDamageRate=1.000000,
-		"BuildObjectDeteriorationDamageRate": "Floating",//BuildObjectDeteriorationDamageRate=1.000000,
-		"CollectionDropRate":             "Floating",//CollectionDropRate=1.000000,
-		"CollectionObjectHPRate":         "Floating",//CollectionObjectHpRate=1.000000,
-		"CollectionObjectRespawnSpeedRate": "Floating",//CollectionObjectRespawnSpeedRate=1.000000,
-		"EnemyDropItemRate":              "Floating",//EnemyDropItemRate=1.000000,
-		"DeathPenalty":                   "String",//DeathPenalty=All,
-		"bEnablePlayerToPlayerDamage":     "TrueFalse",//bEnablePlayerToPlayerDamage=False,
-		"bEnableFriendlyFire":             "TrueFalse",//bEnableFriendlyFire=False,
-		"bEnableInvaderEnemy":             "TrueFalse",//bEnableInvaderEnemy=True,
-		"bActiveUNKO":                     "TrueFalse",//bActiveUNKO=False,
-		"bEnableAimAssistPad":             "TrueFalse",//bEnableAimAssistPad=True,
-		"bEnableAimAssistKeyboard":        "TrueFalse",//bEnableAimAssistKeyboard=False,
-		"DropItemMaxNum":                 "Numeric",//DropItemMaxNum=3000,
-		"DropItemMaxNum_UNKO":            "Numeric",//DropItemMaxNum_UNKO=100,
-		"BaseCampMaxNum":                 "Numeric",//BaseCampMaxNum=128,
-		"BaseCampWorkerMaxNum":           "Numeric",//BaseCampWorkerMaxNum=15,
-		"DropItemAliveMaxHours":          "Floating",//DropItemAliveMaxHours=1.000000,
-		"AutoResetGuildTimeNoOnlinePlayers":  "Floating",//AutoResetGuildTimeNoOnlinePlayers=72.000000,
-		"bAutoResetGuildNoOnlinePlayers": "TrueFalse",//bAutoResetGuildNoOnlinePlayers=False,
-		"GuildPlayerMaxNum":              "Numeric",//GuildPlayerMaxNum=20,
-		"PalEggDefaultHatchingTime":      "Floating",//PalEggDefaultHatchingTime=72.000000,
-		"WorkSpeedRate":                  "Floating",//WorkSpeedRate=1.000000,
-		"bIsMultiplay":                    "TrueFalse",//bIsMultiplay=False,
-		"bIsPvP":                          "TrueFalse",//bIsPvP=False,
-		"bCanPickupOtherGuildDeathPenaltyDrop": "TrueFalse",//bCanPickupOtherGuildDeathPenaltyDrop=False,
-		"bEnableNonLoginPenalty":          "TrueFalse",//bEnableNonLoginPenalty=True,
-		"bEnableFastTravel":               "TrueFalse",//bEnableFastTravel=True,
-		"bIsStartLocationSelectByMap":     "TrueFalse",//bIsStartLocationSelectByMap=True,
-		"bExistPlayerAfterLogout":         "TrueFalse",//bExistPlayerAfterLogout=False,
-		"bEnableDefenseOtherGuildPlayer":  "TrueFalse",//bEnableDefenseOtherGuildPlayer=False,
-		"CoopPlayerMaxNum":               "Numeric",//CoopPlayerMaxNum=4,
-		"ServerPlayerMaxNum":             "Numeric",//ServerPlayerMaxNum=32,
-		"ServerName":                     "String",//ServerName="Default Palworld Server",
-		"ServerDescription":              "String",//ServerDescription="",
-		"ServerPassword":                 "AlphaDash",//ServerPassword="",
-		"AdminPassword":                  "AlphaDash",//AdminPassword="",
-		"PublicIP":                       "String",//PublicIP="",
-		"PublicPort":                     "Numeric",//PublicPort=8211,
-		"RCONPort":                       "Numeric",//RCONPort=25575,
-		"RCONEnabled":                    "TrueFalse",//RCONEnabled=False,
-		"bUseAuth":                        "TrueFalse",//bUseAuth=True,
-		"BanListURL":                     "String",//BanListURL="https://api.palworldgame.com/api/banlist.txt"
-		"Region":		          "String",//Region="",
-		// Add other keys as needed
 	}
 
 	// Specify keys for which quotes should be added
@@ -194,21 +83,16 @@ func main() {
 		"AdminPassword":  true,
 		"ServerDescription": true,
 		"BanListURL": true,
-		"PublicIP": true,
 		// Add other keys as needed
 	}
+
 	// Determine the operating system
 	var osFolder string
 	switch runtime.GOOS {
 	case "windows":
 		osFolder = "WindowsServer"
 	case "linux":
-		// Allow for wine.
-		if os.Getenv("WINEPREFIX") == "" {
-		  osFolder = "LinuxServer"
-	        } else {
-		  osFolder = "WindowsServer"
-	        }
+		osFolder = "WindowsServer"
 	default:
 		fmt.Println("Unsupported operating system")
 		return
@@ -216,43 +100,15 @@ func main() {
 
 	// Get the absolute path to the INI file
 	iniFilePath, err := filepath.Abs(fmt.Sprintf("Pal/Saved/Config/%s/PalWorldSettings.ini", osFolder))
-	if err != nil {
+		if err != nil {
 		fmt.Printf("Error getting absolute path: %v\n", err)
 		return
 	}
 
-	// Check if PalWorldSettings.ini exists
-	fileInfo, err := os.Stat(iniFilePath)
-	if os.IsNotExist(err) {
-		// PalWorldSettings.ini does not exist
-		// Check if DefaultPalWorldSettings.ini exists in the current directory
-		defaultIniPath := "DefaultPalWorldSettings.ini"
-		if _, err := os.Stat(defaultIniPath); !os.IsNotExist(err) {
-			// DefaultPalWorldSettings.ini exists, so move it to the desired location
-			newIniPath := fmt.Sprintf("Pal/Saved/Config/%s/PalWorldSettings.ini", osFolder)
-			err := copyFile(defaultIniPath, iniFilePath)
-			if err != nil {
-				fmt.Printf("Error copying file: %v\n", err)
-				return
-			}
-			fmt.Println("DefaultPalWorldSettings.ini copied to:", newIniPath)
-		} else {
-			fmt.Println("PalWorldSettings.ini not found and DefaultPalWorldSettings.ini does not exist in the current directory.")
-			return // No need to continue if PalWorldSettings.ini doesn't exist and DefaultPalWorldSettings.ini isn't found
-		}
-	} else if fileInfo.Size() == 0 || fileInfo.Size() < 1200 {
-		// PalWorldSettings.ini exists but is empty
-		// Copy the default INI file
-		defaultIniPath := "DefaultPalWorldSettings.ini"
-		newIniPath := fmt.Sprintf("Pal/Saved/Config/%s/PalWorldSettings.ini", osFolder)
-		err := copyFile(defaultIniPath, iniFilePath)
-		if err != nil {
-			fmt.Printf("Error copying file: %v\n", err)
-			return
-		}
-		fmt.Println("DefaultPalWorldSettings.ini copied to:", newIniPath)
-	} else {
-		fmt.Println("PalWorldSettings.ini found at:", iniFilePath)
+	// Check if the INI file exists
+	if _, err := os.Stat(iniFilePath); os.IsNotExist(err) {
+		fmt.Printf("INI file not found, Exiting")
+		return
 	}
 
 	// Read the contents of the original INI file
@@ -264,44 +120,9 @@ func main() {
 
 	// Update values based on environment variables
 	for key, value := range envVars {
-
-		//val is the value that is in the enviroment variable, ok is true or false based of it exitis
-		//LookupEnv retrieves the value of the environment variable named by the key. If the variable is present in the environment the value (which may be empty) is returned and the boolean is true. Otherwise the returned value will be empty and the boolean will be false. 
-		val, ok := os.LookupEnv(value)
-
-		// If the environment variable doesn't exist skip
-		if !ok {
-			continue
-		}
-		
-		//The variable exitis but is empty, so it will fail the validation so just set it to empty
-		if ok && val == "" {
-			fmt.Printf("Updating empty key: %s\n", key)
-			setINIValue(&iniContent, key, "", envVarsQuotes[key])
-		}
-
-		//The Variable is set and it is not empty so validate and if true then set it in the file
-		if ok && val != "" {
-			// Check if there's a validation rule for the key
-			if ruleName, ok := envVarsValidationRules[key]; ok {
-				// Check if there's a validation function for the rule name
-				if rule, ok := ValidationRules[ruleName]; ok {
-					// Validate the value based on the rule
-					if !rule(val) {
-						fmt.Printf("Validation failed for key: %s, value: %s\n", key, val)
-						continue
-					}
-				} else {
-					fmt.Printf("No validation rule found for key: %s\n", key)
-				}
-			} else {
-				fmt.Printf("No validation rule specified for key: %s\n", key)
-			}
-
-			// Update the value in the INI file
-			fmt.Printf("Updating key: %s with value: %s\n", key, val)
-			setINIValue(&iniContent, key, val, envVarsQuotes[key])
-		
+		if value != "" {
+			fmt.Printf("Updating key: %s with value: %s\n", key, value)
+			setINIValue(&iniContent, key, value, envVarsQuotes[key])
 		}
 	}
 
@@ -354,14 +175,4 @@ func setINIValue(content *[]byte, key, value string, addQuotes bool) {
 
 	// Update the content slice in place
 	*content = append((*content)[:start], append([]byte(value), (*content)[end:]...)...)
-}
-
-
-// copyFile copies a file from src to dst
-func copyFile(src, dst string) error {
-	data, err := ioutil.ReadFile(src)
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(dst, data, 0644)
 }
