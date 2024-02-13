@@ -107,7 +107,8 @@ func main() {
 
 	// Check if the INI file exists
 	if _, err := os.Stat(iniFilePath); os.IsNotExist(err) {
-		fmt.Printf("INI file not found, Exiting")
+		fmt.Printf("iniFilePath = %v\n", iniFilePath)
+		fmt.Printf("INI file not found, Exiting, %v\n", err)
 		return
 	}
 
