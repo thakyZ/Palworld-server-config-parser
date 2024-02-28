@@ -78,11 +78,12 @@ func main() {
 
 	// Specify keys for which quotes should be added
 	envVarsQuotes := map[string]bool{
-		"ServerName":     true,
-		"ServerPassword": true,
-		"AdminPassword":  true,
+		"ServerName":        true,
+		"ServerPassword":    true,
+		"AdminPassword":     true,
 		"ServerDescription": true,
-		"BanListURL": true,
+		"PublicIP":          true,
+		"BanListURL":        true,
 		// Add other keys as needed
 	}
 
