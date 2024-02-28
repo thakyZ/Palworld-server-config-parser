@@ -1,5 +1,8 @@
 package main
 
+// cSpell:word Respawn, Multiplay
+// cSpell:ignore Decreace, Regene, Unko
+
 import (
 	"fmt"
 	"io/ioutil"
